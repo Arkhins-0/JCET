@@ -5,12 +5,50 @@ import Link from "next/link";
 import { GraduationCap, Users, Calendar, BadgeCheck, ArrowRight } from "lucide-react";
 import { useDepartment } from "@/lib/queries/useDepartments";
 import { PageHero } from "@/components/shared/PageHero";
-import { FacultyCard } from "@/components/shared/FacultyCard";
 import { DepartmentIcon } from "@/components/shared/DepartmentIcon";
-import { SectionHeading } from "@/components/shared/SectionHeading";
+import { DepartmentTabs, SectionHtml, type DeptTab } from "@/components/shared/DepartmentTabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Reveal } from "@/components/shared/Reveal";
 import { formatINR } from "@/lib/utils";
+import type { Department } from "@/types/api";
+
+function ProgrammesPanel({ dept }: { dept: Department }) {
+  if (!dept.programmes || dept.programmes.length === 0) return null;
+  return (
+    <div className="space-y-4">
+      {dept.programmes.map((p) => (
+        <div
+          key={p.id}
+          className="rounded-xl bg-white p-5 shadow-card ring-1 ring-border/60"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-display font-semibold text-primary">{p.name}</h3>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="rounded-full bg-primary/5 px-2.5 py-1 font-medium text-primary">
+                {p.degree}
+              </span>
+              {p.accreditation !== "NONE" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-1 font-medium text-secondary-dark">
+                  <BadgeCheck className="h-3.5 w-3.5" /> {p.accreditation}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
+            <span>{p.duration} years</span>
+            {p.totalSeats ? <span>{p.totalSeats} seats</span> : null}
+            {p.fees ? <span>Fees: {formatINR(p.fees)}/yr</span> : null}
+          </div>
+          {p.eligibility && (
+            <p className="mt-2 text-xs text-muted">
+              <span className="font-medium text-primary/80">Eligibility: </span>
+              {p.eligibility}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function DepartmentDetailPage({
   params,
@@ -47,11 +85,33 @@ export default function DepartmentDetailPage({
     );
   }
 
+  // Build tabs from the scraped sections, then splice in a DB-sourced
+  // "Programmes" tab right after "About".
+  const tabs: DeptTab[] = (dept.sections ?? []).map((s) => ({
+    key: s.key,
+    label: s.label,
+    content: <SectionHtml html={s.html} />,
+  }));
+
+  if (dept.programmes && dept.programmes.length > 0) {
+    const programmesTab: DeptTab = {
+      key: "programmes",
+      label: "Programmes",
+      content: <ProgrammesPanel dept={dept} />,
+    };
+    const aboutIdx = tabs.findIndex((t) => t.key === "about");
+    tabs.splice(aboutIdx >= 0 ? aboutIdx + 1 : 0, 0, programmesTab);
+  }
+
   return (
     <>
       <PageHero
         title={dept.name}
-        subtitle={dept.level === "BOTH" ? "Undergraduate & Postgraduate" : `${dept.level} programmes`}
+        subtitle={
+          dept.level === "BOTH"
+            ? "Undergraduate & Postgraduate"
+            : `${dept.level} programmes`
+        }
         breadcrumbs={[
           { label: "Departments", href: "/departments" },
           { label: dept.name },
@@ -84,121 +144,47 @@ export default function DepartmentDetailPage({
         </div>
       </section>
 
-      {/* About */}
-      <section className="section-py">
-        <div className="container-px grid gap-12 lg:grid-cols-[1fr_320px]">
-          <div>
+      {/* Tabbed content */}
+      <section className="container-px pb-4 pt-2">
+        {tabs.length > 0 ? (
+          <DepartmentTabs tabs={tabs} />
+        ) : (
+          <div className="section-py">
             {dept.description && (
-              <Reveal>
+              <>
                 <h2 className="font-display text-2xl font-bold text-primary">
                   About the Department
                 </h2>
-                <p className="mt-4 leading-relaxed text-muted">
+                <p className="mt-4 max-w-3xl leading-relaxed text-muted">
                   {dept.description}
                 </p>
-              </Reveal>
+              </>
             )}
-
-            {/* Programmes */}
-            {dept.programmes && dept.programmes.length > 0 && (
-              <Reveal>
-                <div className="mt-12">
-                  <h2 className="font-display text-2xl font-bold text-primary">
-                    Programmes Offered
-                  </h2>
-                  <div className="mt-5 space-y-4">
-                    {dept.programmes.map((p) => (
-                      <div
-                        key={p.id}
-                        className="rounded-xl bg-white p-5 shadow-card ring-1 ring-border/60"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <h3 className="font-display font-semibold text-primary">
-                            {p.name}
-                          </h3>
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="rounded-full bg-primary/5 px-2.5 py-1 font-medium text-primary">
-                              {p.degree}
-                            </span>
-                            {p.accreditation !== "NONE" && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-1 font-medium text-secondary-dark">
-                                <BadgeCheck className="h-3.5 w-3.5" /> {p.accreditation}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
-                          <span>{p.duration} years</span>
-                          {p.totalSeats ? <span>{p.totalSeats} seats</span> : null}
-                          {p.fees ? <span>Fees: {formatINR(p.fees)}/yr</span> : null}
-                        </div>
-                        {p.eligibility && (
-                          <p className="mt-2 text-xs text-muted">
-                            <span className="font-medium text-primary/80">
-                              Eligibility:{" "}
-                            </span>
-                            {p.eligibility}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
-            )}
-          </div>
-
-          {/* HOD sidebar */}
-          <aside className="space-y-6">
-            {dept.hod && (
-              <div className="rounded-2xl bg-white p-6 text-center shadow-card ring-1 ring-border/60">
-                <p className="text-xs font-semibold uppercase tracking-wider text-secondary-dark">
-                  Head of Department
-                </p>
-                <h3 className="mt-2 font-display text-lg font-bold text-primary">
-                  {dept.hod.user.name}
-                </h3>
-                <p className="text-sm text-muted">{dept.hod.designation}</p>
-                {dept.hod.qualification && (
-                  <p className="mt-1 text-xs text-muted">
-                    {dept.hod.qualification}
-                  </p>
-                )}
-                {dept.hod.bio && (
-                  <p className="mt-3 text-sm leading-relaxed text-muted">
-                    {dept.hod.bio}
-                  </p>
-                )}
-              </div>
-            )}
-            <div className="rounded-2xl bg-primary p-6 text-white">
-              <h3 className="font-display text-lg font-bold">Interested?</h3>
-              <p className="mt-2 text-sm text-white/80">
-                Explore admission options for this department.
-              </p>
-              <Link href="/admissions" className="btn-gold mt-4 w-full">
-                Admissions <ArrowRight className="h-4 w-4" />
-              </Link>
+            <div className="mt-10">
+              <ProgrammesPanel dept={dept} />
             </div>
-          </aside>
-        </div>
+          </div>
+        )}
       </section>
 
-      {/* Faculty */}
-      {dept.faculty && dept.faculty.length > 0 && (
-        <section className="bg-surface section-py">
-          <div className="container-px">
-            <SectionHeading eyebrow="Our Team" title="Faculty" />
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {dept.faculty.map((f, i) => (
-                <Reveal key={f.id} delay={(i % 4) * 0.05}>
-                  <FacultyCard faculty={f} />
-                </Reveal>
-              ))}
+      {/* Admissions CTA */}
+      <section className="section-py pt-0">
+        <div className="container-px">
+          <div className="flex flex-col items-start justify-between gap-4 rounded-2xl bg-primary p-8 text-white sm:flex-row sm:items-center">
+            <div>
+              <h3 className="font-display text-xl font-bold">
+                Interested in {dept.name}?
+              </h3>
+              <p className="mt-1 text-sm text-white/80">
+                Explore admission options, eligibility and fees for this department.
+              </p>
             </div>
+            <Link href="/admissions" className="btn-gold shrink-0">
+              Admissions <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
     </>
   );
 }

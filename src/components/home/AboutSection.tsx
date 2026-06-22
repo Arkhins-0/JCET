@@ -51,8 +51,8 @@ export function AboutSection() {
           <div className="relative">
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-hover">
               <Image
-                src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1600"
-                alt="Students at JCET campus"
+                src="/about-college.webp"
+                alt="Jawaharlal College of Engineering and Technology campus"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"

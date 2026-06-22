@@ -66,8 +66,8 @@ export default function AboutPage() {
           <Reveal direction="right">
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-hover">
               <Image
-                src="https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?q=80&w=1600"
-                alt="JCET campus building"
+                src="/hero-aerial.jpg"
+                alt="Aerial view of the JCET campus"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"

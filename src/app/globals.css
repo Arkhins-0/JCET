@@ -52,6 +52,76 @@
   .card {
     @apply rounded-xl bg-card shadow-card ring-1 ring-border/60;
   }
+
+  /* Styling for sanitised department-section HTML injected via
+     dangerouslySetInnerHTML (the scraped markup carries no classes). */
+  .dept-prose {
+    @apply text-[15px] leading-relaxed text-muted;
+  }
+  .dept-prose h1,
+  .dept-prose h2,
+  .dept-prose h3,
+  .dept-prose h4,
+  .dept-prose h5 {
+    @apply mb-3 mt-7 font-display font-bold text-primary first:mt-0;
+  }
+  .dept-prose h1,
+  .dept-prose h2 {
+    @apply text-2xl;
+  }
+  .dept-prose h3 {
+    @apply text-xl;
+  }
+  .dept-prose h4 {
+    @apply text-lg;
+  }
+  .dept-prose h5 {
+    @apply text-base;
+  }
+  .dept-prose p {
+    @apply my-3;
+  }
+  .dept-prose a {
+    @apply font-medium text-secondary underline decoration-secondary/40 underline-offset-2 hover:decoration-secondary;
+  }
+  .dept-prose strong,
+  .dept-prose b {
+    @apply font-semibold text-primary;
+  }
+  .dept-prose ul {
+    @apply my-3 list-disc space-y-1.5 pl-6;
+  }
+  .dept-prose ol {
+    @apply my-3 list-decimal space-y-1.5 pl-6;
+  }
+  .dept-prose blockquote {
+    @apply my-4 border-l-4 border-secondary/40 pl-4 italic text-primary/80;
+  }
+  .dept-prose img {
+    @apply my-4 inline-block h-auto max-w-full rounded-xl shadow-card ring-1 ring-border/60;
+  }
+  .dept-prose figure {
+    @apply my-4;
+  }
+  .dept-prose figcaption {
+    @apply mt-2 text-center text-sm text-muted;
+  }
+  .dept-prose iframe,
+  .dept-prose video {
+    @apply my-4 aspect-video w-full rounded-xl;
+  }
+  .dept-prose table {
+    @apply my-5 w-full border-collapse overflow-hidden rounded-lg text-sm ring-1 ring-border;
+  }
+  .dept-prose th {
+    @apply bg-primary/5 px-3 py-2 text-left font-semibold text-primary;
+  }
+  .dept-prose td {
+    @apply border-t border-border px-3 py-2 align-top;
+  }
+  .dept-prose hr {
+    @apply my-6 border-border;
+  }
 }
 
 @layer utilities {

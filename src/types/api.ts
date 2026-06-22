@@ -56,6 +56,15 @@ export interface Programme {
   department?: { id: string; name: string; slug: string; shortCode: string };
 }
 
+export interface DepartmentSection {
+  id: string;
+  key: string;
+  label: string;
+  order: number;
+  html: string;
+  images: string[];
+}
+
 export interface Department {
   id: string;
   name: string;
@@ -78,6 +87,7 @@ export interface Department {
   } | null;
   faculty?: FacultySummary[];
   programmes?: Programme[];
+  sections?: DepartmentSection[];
   _count?: { programmes: number; faculty: number; students: number };
 }
 

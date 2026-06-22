@@ -19,7 +19,7 @@ export interface HeroSlide {
 
 export const heroSlides: HeroSlide[] = [
   {
-    image: "/land1.jpg",
+    image: "/hero-aerial.jpg",
     eyebrow: "Admissions Open 2026–27",
     title: "Engineer Your *Future* at an Autonomous College of *Excellence*",
     subtitle:
@@ -28,7 +28,7 @@ export const heroSlides: HeroSlide[] = [
     secondaryCta: { label: "Explore Campus", href: "/admissions/campus-tour" },
   },
   {
-    image: "/land2.jpg",
+    image: "/hero-tech.webp",
     eyebrow: "First in Kerala",
     title: "B.Tech *Aeronautical Engineering* & 10+ Programmes",
     subtitle:
@@ -37,7 +37,7 @@ export const heroSlides: HeroSlide[] = [
     secondaryCta: { label: "Browse Programmes", href: "/academics/programmes" },
   },
   {
-    image: "/land3.jpeg",
+    image: "/hero-campus.webp",
     eyebrow: "Careers that take off",
     title: "Strong *Placements* & a Thriving *Innovation* Ecosystem",
     subtitle:
