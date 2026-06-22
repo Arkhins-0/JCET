@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-surface text-foreground font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+  /* Visible focus ring for keyboard users */
+  :focus-visible {
+    @apply outline-none ring-2 ring-secondary ring-offset-2 ring-offset-surface;
+  }
+}
+
+@layer components {
+  .container-px {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .section-py {
+    @apply py-16 md:py-24;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-primary-foreground hover:bg-primary-light;
+  }
+  .btn-gold {
+    @apply btn bg-accent text-accent-foreground hover:bg-accent-light;
+  }
+  .btn-teal {
+    @apply btn bg-secondary text-secondary-foreground hover:bg-secondary-dark;
+  }
+  .btn-outline {
+    @apply btn border-2 border-white/80 bg-transparent text-white hover:bg-white hover:text-primary;
+  }
+  .btn-ghost {
+    @apply btn border border-border bg-white text-primary hover:bg-surface;
+  }
+  .btn-lg {
+    @apply px-7 py-3.5 text-base;
+  }
+  .card {
+    @apply rounded-xl bg-card shadow-card ring-1 ring-border/60;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8%,
+      black 92%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8%,
+      black 92%,
+      transparent
+    );
+  }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
