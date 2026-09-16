@@ -1,4 +1,4 @@
-// Shared API response types — mirror the jcet-backend Prisma models.
+// Shared API response types — mirror the Prisma models in prisma/schema.prisma.
 
 export interface PaginationMeta {
   page: number;

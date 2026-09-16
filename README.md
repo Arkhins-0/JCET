@@ -1,8 +1,8 @@
-# JCET Frontend
+# JCET Site
 
-Public website for **Jawaharlal College of Engineering and Technology (JCET)** — built with Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion and TanStack Query.
+Public website for **Jawaharlal College of Engineering and Technology (JCET)** — a single full-stack Next.js 14 (App Router) app with TypeScript, Tailwind CSS, Framer Motion, TanStack Query, Prisma and NextAuth.
 
-Runs on **port 3000** and consumes the `jcet-backend` API on **port 3001**.
+Runs on **port 3000**. The API lives in the same app as Next.js route handlers under `/api` (see `src/app/api/`) — there is no separate backend service or port.
 
 ---
 
@@ -16,6 +16,9 @@ Runs on **port 3000** and consumes the `jcet-backend` API on **port 3001**.
 | UI primitives  | Radix UI + hand-built components     |
 | Animations     | Framer Motion                       |
 | Data fetching  | TanStack Query v5 + Axios           |
+| API            | Next.js route handlers (`src/app/api/`) |
+| Database       | PostgreSQL (NeonDB) via Prisma      |
+| Auth           | NextAuth v5 (credentials)           |
 | Forms          | React Hook Form + Zod               |
 | State          | Zustand (UI state)                  |
 | Icons          | Lucide React                        |
@@ -43,25 +46,33 @@ Fonts via `next/font`: **Outfit** (display) + **Inter** (body).
 ## Setup
 
 ```bash
-cd jcet-frontend
 npm install
-cp .env.example .env.local   # set NEXT_PUBLIC_API_URL etc.
+cp .env.example .env.local   # set DATABASE_URL, AUTH_SECRET etc.
+npm run db:generate
 npm run dev                  # http://localhost:3000
 ```
 
-> Start the **backend first** (`jcet-backend` on :3001) so data-driven sections
-> (departments, news, placements, testimonials) load. Without it, those sections
-> show graceful empty/error states.
+Data-driven sections (departments, news, placements, testimonials) are served
+by this app's own `/api` routes, backed by Prisma + PostgreSQL — no other
+service needs to be running.
 
 ### Environment variables
 
 ```env
-NEXT_PUBLIC_API_URL="http://localhost:3001"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST/DB?sslmode=require&pgbouncer=true"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST/DB?sslmode=require"
+NEXTAUTH_SECRET="replace-with-a-long-random-secret"
+AUTH_SECRET="replace-with-a-long-random-secret"
+NEXTAUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_SITE_URL="https://jawaharlalcolleges.com"
 NEXT_PUBLIC_WHATSAPP_NUMBER="918592884777"
 NEXT_PUBLIC_APPLY_URL="https://admissions.nehrucolleges.com/application-form"
 NEXT_PUBLIC_GA_ID=""
 ```
+
+See `.env.example` for the full list, including the optional
+`NEXT_PUBLIC_API_URL` override (leave unset to use this app's own same-origin
+`/api` routes).
 
 ---
 
@@ -118,7 +129,7 @@ non-redirect menu link resolve to a styled, real page.
 /news, /news/[slug]            News & events (live, infinite scroll)
 /gallery                       Gallery (live, filterable)
 /contact                       Contact + feedback form + map
-/portal/*                      Student portal scaffold (auth to be wired)
+/portal/*                      Student portal (NextAuth-protected)
 ```
 
 ---
@@ -171,8 +182,9 @@ white chip in the footer). Replace that file to swap the brand.
 
 ## Notes / next steps
 
-- **Auth & portal:** the `/portal/*` pages are scaffolded; wire NextAuth (or the
-  backend credentials endpoint) to enable certificate requests and notifications.
+- **Auth & portal:** NextAuth credentials login (`/api/auth`) is wired up; the
+  `/portal/*` pages still need certificate-request and notification features
+  built on top of it.
 - **File uploads:** the admission form collects documents client-side; connect
   Cloudinary/Uploadthing to persist them and pass `documents` URLs to the API.
 - **Hero video:** the hero uses a priority `next/image`; swap in a `<video>` when

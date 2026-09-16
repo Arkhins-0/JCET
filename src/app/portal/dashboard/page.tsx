@@ -12,9 +12,9 @@ export default function PortalDashboard() {
       <div className="mt-4 flex items-start gap-3 rounded-xl bg-accent/10 p-4 text-sm text-accent-dark">
         <Info className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
         <p>
-          This portal is auth-protected. Connect it to the backend NextAuth
-          credentials login (<code>/api/auth</code>) to enable certificate
-          requests and personalised notifications.
+          This portal is auth-protected via NextAuth credentials login
+          (<code>/api/auth</code>). Certificate requests and personalised
+          notifications are next up.
         </p>
       </div>
 

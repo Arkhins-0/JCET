@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "WebFetch(domain:jawaharlalcolleges.com)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"=== DONE \\(exit $?\\) ===\")",
+      "Bash(npm install *)"
+    ]
+  }
+}

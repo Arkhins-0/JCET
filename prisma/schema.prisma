@@ -1,0 +1,465 @@
+// JCET — Jawaharlal College of Engineering and Technology
+// Prisma schema · NeonDB (PostgreSQL serverless)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  STAFF
+  FACULTY
+  STUDENT
+}
+
+enum AdmissionType {
+  KEAM
+  MANAGEMENT
+  NRI
+  LATERAL
+}
+
+enum StudentStatus {
+  ACTIVE
+  GRADUATED
+  DROPPED
+}
+
+enum DepartmentLevel {
+  UG
+  PG
+  BOTH
+}
+
+enum Degree {
+  BTECH
+  MTECH
+  MBA
+  MCA
+}
+
+enum Accreditation {
+  NBA
+  NAAC
+  NONE
+}
+
+enum AdmissionCategory {
+  GENERAL
+  OBC
+  SC
+  ST
+  EWS
+}
+
+enum AdmissionStatus {
+  PENDING
+  SHORTLISTED
+  ADMITTED
+  REJECTED
+  WAITLISTED
+}
+
+enum NewsType {
+  NEWS
+  EVENT
+  CIRCULAR
+  ANNOUNCEMENT
+}
+
+enum GalleryCategory {
+  CAMPUS
+  EVENTS
+  SPORTS
+  CULTURAL
+  ACADEMIC
+}
+
+enum PlacementType {
+  ON_CAMPUS
+  OFF_CAMPUS
+  INTERNSHIP
+}
+
+enum PlacementSector {
+  IT
+  CORE
+  MANAGEMENT
+  PSU
+  RESEARCH
+}
+
+enum NotificationType {
+  INFO
+  URGENT
+  EXAM
+  PLACEMENT
+}
+
+enum TargetRole {
+  ALL
+  STUDENT
+  FACULTY
+  STAFF
+}
+
+enum CertificateType {
+  BONAFIDE
+  NOC
+  TRANSCRIPT
+  MIGRATION
+}
+
+enum CertificateStatus {
+  PENDING
+  PROCESSING
+  READY
+  DELIVERED
+}
+
+enum FeedbackType {
+  GENERAL
+  COMPLAINT
+  SUGGESTION
+}
+
+enum FeedbackStatus {
+  UNREAD
+  READ
+  RESOLVED
+}
+
+// ---------------------------------------------------------------------------
+// Core models
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student    Student?
+  faculty    Faculty?
+  newsEvents NewsEvent[] @relation("NewsAuthor")
+  galleries  Gallery[]   @relation("GalleryUploader")
+
+  @@index([role])
+}
+
+model Student {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  rollNumber    String        @unique
+  batch         String
+  semester      Int           @default(1)
+  departmentId  String
+  admissionType AdmissionType @default(KEAM)
+  status        StudentStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department          Department           @relation(fields: [departmentId], references: [id])
+  admissions          Admission[]
+  certificateRequests CertificateRequest[]
+  placementRecords    PlacementRecord[]
+
+  @@index([departmentId])
+  @@index([status])
+  @@index([batch])
+}
+
+model Faculty {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  employeeId   String   @unique
+  designation  String
+  qualification String
+  departmentId String
+  experience   Int      @default(0)
+  profileImage String?
+  bio          String?  @db.Text
+  isHOD        Boolean  @default(false)
+  publications String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department Department  @relation("DepartmentFaculty", fields: [departmentId], references: [id])
+  headOf     Department? @relation("DepartmentHOD")
+
+  @@index([departmentId])
+  @@index([isHOD])
+}
+
+model Department {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  shortCode   String          @unique
+  description String?         @db.Text
+  level       DepartmentLevel @default(UG)
+  intake      Int?
+  established Int?
+  hodId       String?         @unique
+  image       String?
+  icon        String?
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  hod        Faculty?    @relation("DepartmentHOD", fields: [hodId], references: [id])
+  faculty    Faculty[]   @relation("DepartmentFaculty")
+  students   Student[]
+  programmes Programme[]
+  sections   DepartmentSection[]
+
+  @@index([isActive])
+}
+
+// Tabbed content blocks for a department detail page (About, HOD's Desk,
+// Vision & Mission, PEO & PSO, Facilities, Achievements, Placements, etc.)
+// `html` holds sanitised markup; `images` is the tab's image gallery.
+model DepartmentSection {
+  id           String   @id @default(cuid())
+  departmentId String
+  key          String
+  label        String
+  order        Int      @default(0)
+  html         String   @db.Text
+  images       String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@unique([departmentId, key])
+  @@index([departmentId])
+}
+
+model Programme {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  degree       Degree
+  duration     Int           @default(4)
+  departmentId String
+  totalSeats   Int?
+  fees         Decimal?      @db.Decimal(12, 2)
+  eligibility  String?       @db.Text
+  accreditation Accreditation @default(NONE)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  department Department  @relation(fields: [departmentId], references: [id])
+  admissions Admission[]
+
+  @@index([degree])
+  @@index([departmentId])
+  @@index([isActive])
+}
+
+model Admission {
+  id                String            @id @default(cuid())
+  applicationNumber String            @unique
+  studentId         String?
+  applicantName     String
+  email             String
+  phone             String
+  dob               DateTime
+  address           String            @db.Text
+  programmeId       String
+  keamRank          Int?
+  plusTwoPercent    Float?
+  category          AdmissionCategory @default(GENERAL)
+  status            AdmissionStatus   @default(PENDING)
+  documents         Json?
+  appliedAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  student   Student?  @relation(fields: [studentId], references: [id])
+  programme Programme @relation(fields: [programmeId], references: [id])
+
+  @@index([status])
+  @@index([programmeId])
+  @@index([email])
+}
+
+model NewsEvent {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  excerpt     String?
+  type        NewsType  @default(NEWS)
+  thumbnail   String?
+  publishedAt DateTime?
+  eventDate   DateTime?
+  isPublished Boolean   @default(false)
+  authorId    String
+  tags        String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author User @relation("NewsAuthor", fields: [authorId], references: [id])
+
+  @@index([type])
+  @@index([isPublished])
+  @@index([publishedAt])
+}
+
+model Gallery {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  albumId     String?
+  category    GalleryCategory @default(CAMPUS)
+  uploadedById String
+  createdAt   DateTime        @default(now())
+
+  album      GalleryAlbum? @relation(fields: [albumId], references: [id])
+  uploadedBy User          @relation("GalleryUploader", fields: [uploadedById], references: [id])
+
+  @@index([category])
+  @@index([albumId])
+}
+
+model GalleryAlbum {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  coverImage  String?
+  eventDate   DateTime?
+  isPublished Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  images Gallery[]
+
+  @@index([isPublished])
+}
+
+model Placement {
+  id           String          @id @default(cuid())
+  companyName  String
+  companyLogo  String?
+  package      Decimal         @db.Decimal(12, 2)
+  role         String?
+  batch        String?
+  studentsHired Int            @default(1)
+  type         PlacementType   @default(ON_CAMPUS)
+  sector       PlacementSector @default(IT)
+  createdAt    DateTime        @default(now())
+
+  records PlacementRecord[]
+
+  @@index([type])
+  @@index([sector])
+  @@index([batch])
+}
+
+model PlacementRecord {
+  id          String    @id @default(cuid())
+  studentId   String
+  placementId String
+  ctc         Decimal   @db.Decimal(12, 2)
+  offerDate   DateTime?
+  joiningDate DateTime?
+
+  student   Student   @relation(fields: [studentId], references: [id])
+  placement Placement @relation(fields: [placementId], references: [id])
+
+  @@index([studentId])
+  @@index([placementId])
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  studentName  String
+  batch        String?
+  department   String?
+  youtubeUrl   String?
+  thumbnailUrl String?
+  quote        String   @db.Text
+  isPublished  Boolean  @default(true)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([isPublished])
+  @@index([order])
+}
+
+model Scholarship {
+  id          String    @id @default(cuid())
+  name        String
+  description String    @db.Text
+  amount      Decimal?  @db.Decimal(12, 2)
+  category    String?
+  eligibility String?   @db.Text
+  lastDate    DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  @@index([isActive])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  title     String
+  message   String           @db.Text
+  type      NotificationType @default(INFO)
+  targetRole TargetRole      @default(ALL)
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  expiresAt DateTime?
+
+  @@index([targetRole])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model CertificateRequest {
+  id          String            @id @default(cuid())
+  studentId   String
+  type        CertificateType
+  reason      String?           @db.Text
+  status      CertificateStatus @default(PENDING)
+  requestedAt DateTime          @default(now())
+  deliveredAt DateTime?
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@index([status])
+}
+
+model Feedback {
+  id          String         @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String?
+  message     String         @db.Text
+  type        FeedbackType   @default(GENERAL)
+  status      FeedbackStatus @default(UNREAD)
+  submittedAt DateTime       @default(now())
+
+  @@index([status])
+  @@index([type])
+}
